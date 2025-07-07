@@ -12,7 +12,7 @@ import itertools
 from itertools import combinations as icmb
 from itertools import chain as ichain
 from typing import Tuple, Dict
-import sid_tools as sid
+from . import sid_tools as sid
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning)
