@@ -7,8 +7,6 @@
 ### Option 1: Install via pip (standard)
 
 ```bash
-git clone https://github.com/zrhuan0318/SID-Net.git
-cd SID-Net
 pip install ./
 ```
 
@@ -36,23 +34,34 @@ This will:
 
 ```python
 from sidnet import sid_decompose, sid_to_network_df, build_sid_network
+import pandas as pd
 import numpy as np
 
-# Example data: 3 variables, 1000 samples
-X = np.random.rand(3, 1000)
-Y = np.vstack([X[0], X[1], X[2]])  # Target + inputs
+# Load OTU table
+otu_df = pd.read_csv("OTU_TABLE.txt", sep="\t", index_col=0)
+data = otu_df.values.astype(float)
 
-# Perform SID decomposition
-I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2)
+# Prepare input
+target_index = 0
+Y = np.vstack([data[target_index], data])
+species_names = list(otu_df.index)
+basename = "OTU_TABLE"
 
-# Convert results to network DataFrame
-df = sid_to_network_df(I_R, I_S)
+# Run SID decomposition and export results
+I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2, species_names=species_names, basename=basename)
 
-# Build and export network files
-build_sid_network(df)
+# Convert and save network input
+df = sid_to_network_df(I_R, I_S, species_names=species_names, basename=basename)
+
+# Build network
+build_sid_network(df, output_dir="./sid_output", env_name="otu_sid")
 ```
 
-> A helper function `sid_to_network_df` is provided to convert SID decomposition results (`I_R`, `I_S`) into the required input format for `build_sid_network()`.
+> **Note:** If `species_names` and `basename` are provided, `sid_decompose` and `sid_to_network_df` will automatically export result files to the current directory:
+>
+> - `OTU_TABLE_sid_results.tsv`
+> - `OTU_TABLE_unique_contributions.tsv`
+> - `OTU_TABLE_df.tsv`
 
 ## Folder Structure
 
