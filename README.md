@@ -33,41 +33,35 @@ This will:
 ## Quick Start
 
 ```python
-from sidnet import sid_decompose, build_sid_network
+from sidnet import sid_decompose, sid_to_network_df, build_sid_network
 import numpy as np
-import pandas as pd
 
 # Example data: 3 variables, 1000 samples
 X = np.random.rand(3, 1000)
 Y = np.vstack([X[0], X[1], X[2]])  # Target + inputs
 
-# Perform SID
+# Perform SID decomposition
 I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2)
 
-# Build network
-data = []
-for k in I_S:
-    if len(k) == 2:
-        data.append({
-            "source_otu": f"OTU{k[0]}",
-            "target_otu": f"OTU{k[1]}",
-            "synergy": I_S[k],
-            "redundant": (I_R.get((k[0],), 0) + I_R.get((k[1],), 0)) / 2
-        })
-df = pd.DataFrame(data)
+# Convert results to network DataFrame
+df = sid_to_network_df(I_R, I_S)
+
+# Build and export network files
 build_sid_network(df)
 ```
+
+> A helper function `sid_to_network_df` is provided to convert SID decomposition results (`I_R`, `I_S`) into the required input format for `build_sid_network()`.
 
 ## Folder Structure
 
 ```
 SID-Net/
 └── sidnet/
-    ├── sid.py               # SID decomposition logic
+    ├── sid.py           # SID decomposition logic + DataFrame export
     ├── sid_tools.py     # Information theory tools
-    ├── sid_net.py        # Network construction
+    ├── sid_net.py       # Network construction
     └── __init__.py      # Public API
-├── environment.yml   # Conda environment
+├── environment.yml      # Conda environment
 ├── setup.py
 ├── README.md
 └── examples/
