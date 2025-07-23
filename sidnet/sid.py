@@ -1,4 +1,3 @@
-
 # sid.py
 """
 SID: Synergistic Information Decomposition
@@ -7,11 +6,7 @@ and multiple input variables into unique, redundant, and synergistic components.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 import itertools
-from itertools import combinations as icmb
-from itertools import chain as ichain
 from typing import Tuple, Dict, List, Optional
 import warnings
 import pandas as pd
@@ -20,7 +15,10 @@ from . import sid_tools as sid
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Optional[List[str]] = None, basename: Optional[str] = None):
+def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int,
+                  species_names: Optional[List[str]] = None,
+                  basename: Optional[str] = None,
+                  input_file: Optional[str] = None):
     """
     Perform information decomposition and optionally save the results.
 
@@ -35,6 +33,8 @@ def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Opti
           Names corresponding to each variable (excluding target).
     - basename: str (optional)
           Base name for output files, without extension.
+    - input_file: str (optional)
+          Full path to the input file. If basename is None, this will be used to derive it.
 
     Returns:
     - I_R: dict
@@ -44,6 +44,9 @@ def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Opti
     - MI: dict
           Mutual information per variable combination.
     """
+    if basename is None and input_file is not None:
+        basename = os.path.splitext(os.path.basename(input_file))[0]
+
     Ntot = Y.shape[0]
     tot_inds = range(1, Ntot)
     p_target = sid.myhistogram(Y[0, :].reshape(-1, 1), nbins)
@@ -55,15 +58,16 @@ def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Opti
             selected_vars = (0,) + combo
             hist = sid.myhistogram(Y[selected_vars, :].T, nbins)
             p_joint = hist
-            p_combo = hist.sum(axis=0) if len(combo) == 1 else hist.sum(axis=0)
+            p_combo = hist.sum(axis=0)
             p_target_given_combo = p_joint / (p_combo + 1e-14)
             p_target_expand = p_target.reshape(-1, *(1,) * len(combo))
-            s_info = (p_target_given_combo * (sid.mylog(p_target_given_combo) - sid.mylog(p_target_expand))).sum(
-                axis=tuple(range(1, len(selected_vars)))
-            )
+            s_info = (p_target_given_combo *
+                      (sid.mylog(p_target_given_combo) - sid.mylog(p_target_expand))).sum(
+                          axis=tuple(range(1, len(selected_vars)))
+                      )
             Is[combo] = s_info
 
-    MI = {k: (Is[k] * p_target.squeeze()).sum() for k in Is.keys()}
+    MI = {k: (Is[k] * p_target.squeeze()).sum() for k in Is}
     I_R = {cc: 0 for cc in combs if len(cc) == 1 or len(cc) == 2}
     I_S = {cc: 0 for cc in combs if len(cc) >= 2}
 
@@ -75,7 +79,7 @@ def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Opti
         lens = np.array([len(l) for l in lab])
         I1 = I1[i1]
         for l in range(1, lens.max()):
-            inds_l2 = np.where(lens == l+1)[0]
+            inds_l2 = np.where(lens == l + 1)[0]
             Il1max = I1[lens == l].max()
             inds_ = inds_l2[I1[inds_l2] < Il1max]
             I1[inds_] = 0
@@ -91,7 +95,7 @@ def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Opti
             else:
                 I_S[ll] += info
 
-    # Save results if basename is provided
+    # Save result tables
     if basename is not None and species_names is not None:
         rows_all = []
         rows_unique = []
@@ -116,7 +120,9 @@ def sid_decompose(Y: np.ndarray, nbins: int, max_combs: int, species_names: Opti
     return I_R, I_S, MI
 
 
-def sid_to_network_df(I_R: Dict, I_S: Dict, species_names: Optional[List[str]] = None, basename: Optional[str] = None) -> pd.DataFrame:
+def sid_to_network_df(I_R: Dict, I_S: Dict,
+                      species_names: Optional[List[str]] = None,
+                      basename: Optional[str] = None) -> pd.DataFrame:
     """
     Convert SID results into DataFrame and optionally save to file.
 
