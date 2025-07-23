@@ -7,8 +7,6 @@
 ### Option 1: Install via pip
 
 ```bash
-git clone https://github.com/zrhuan0318/SID-Net.git
-cd SID-Net
 pip install ./
 ```
 
