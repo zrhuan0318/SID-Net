@@ -4,19 +4,21 @@
 
 ## Installation
 
-### Option 1: Install via pip (standard)
+### Option 1: Install via pip
 
 ```bash
+git clone https://github.com/zrhuan0318/SID-Net.git
+cd SID-Net
 pip install ./
 ```
 
-This will install the package and required dependencies:
+Dependencies:
 - numpy
 - pandas
 - torch
 - matplotlib
 
-### Option 2: Install via Conda (recommended for reproducibility)
+### Option 2: Install via Conda
 
 ```bash
 git clone https://github.com/zrhuan0318/SID-Net.git
@@ -25,69 +27,49 @@ conda env create -f environment.yml
 conda activate sidnet
 ```
 
-This will:
-- Create a new Conda environment `sidnet`
-- Install Python 3.9, numpy, pandas, matplotlib, pytorch
-- Use `pip install .` to install the SID-Net package from source
-
-## Quick Start
+## Quick Start (with synthetic data)
 
 ```python
-from sidnet import sid_decompose, sid_to_network_df, build_sid_network
-import pandas as pd
 import numpy as np
+from sidnet import sid_decompose, sid_to_network_df, build_sid_network
 
-# Load OTU table
-otu_df = pd.read_csv("OTU_TABLE.txt", sep="\t", index_col=0)
-data = otu_df.values.astype(float)
+# Generate synthetic data
+np.random.seed(42)
+species_names = [f"Species_{i}" for i in range(5)]
+data = np.random.rand(5, 1000)
+Y = np.vstack([data[0], data])
+input_file = "demo_synthetic.tsv"
 
-# Prepare input
-target_index = 0
-Y = np.vstack([data[target_index], data])
-species_names = list(otu_df.index)
-basename = "OTU_TABLE"
-
-# Run SID decomposition and export results
-I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2, species_names=species_names, basename=basename)
-
-# Convert and save network input
-df = sid_to_network_df(I_R, I_S, species_names=species_names, basename=basename)
-
-# Build network
-build_sid_network(df, output_dir="./sid_output", env_name="otu_sid")
+# Run SID
+I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2,
+                             species_names=species_names,
+                             input_file=input_file)
+df = sid_to_network_df(I_R, I_S, species_names=species_names, basename="demo_synthetic")
+build_sid_network(df)
 ```
 
-> **Note:** If `species_names` and `basename` are provided, `sid_decompose` and `sid_to_network_df` will automatically export result files to the current directory:
+> If `input_file` is provided, SID-Net will automatically derive a `basename` for file outputs:
 >
-> - `OTU_TABLE_sid_results.tsv`
-> - `OTU_TABLE_unique_contributions.tsv`
-> - `OTU_TABLE_df.tsv`
+> - `demo_synthetic_sid_results.tsv`
+> - `demo_synthetic_unique_contributions.tsv`
+> - `demo_synthetic_df.tsv`
 
 ## Folder Structure
 
 ```
 SID-Net/
 └── sidnet/
-    ├── sid.py           # SID decomposition logic + DataFrame export
-    ├── sid_tools.py     # Information theory tools
-    ├── sid_net.py       # Network construction
-    └── __init__.py      # Public API
-├── environment.yml      # Conda environment
+    ├── sid.py           # SID decomposition logic
+    ├── sid_tools.py     # Info theory utilities
+    ├── sid_net.py       # Network builder
+    └── __init__.py
+├── examples/
+│   ├── demo.py
+│   └── demo.ipynb
+├── environment.yml
 ├── setup.py
-├── README.md
-└── examples/
-    ├── demo.py
-    └── demo.ipynb
+└── README.md
 ```
-
-## Examples
-
-Run either of the examples:
-
-- `examples/demo.py`: Script-based example
-- `examples/demo.ipynb`: Interactive Jupyter Notebook
-
-These demonstrate how to compute SID and build microbial networks from synthetic data.
 
 ## License
 
