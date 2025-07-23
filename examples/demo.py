@@ -13,14 +13,16 @@ data = np.random.rand(5, 1000)
 target_index = 0
 Y = np.vstack([data[target_index], data])
 
-# Set output basename
-basename = "demo_synthetic"
+# Simulate input_file for automatic basename detection
+input_file = "demo_synthetic.tsv"
 
-# Run SID decomposition
-I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2, species_names=species_names, basename=basename)
+# Run SID decomposition with automatic file output
+I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2,
+                             species_names=species_names,
+                             input_file=input_file)
 
 # Convert to network format and save
-df = sid_to_network_df(I_R, I_S, species_names=species_names, basename=basename)
+df = sid_to_network_df(I_R, I_S, species_names=species_names, basename="demo_synthetic")
 
 # Build and save network files
 build_sid_network(df, output_dir="./sid_output", env_name="demo_synthetic")
