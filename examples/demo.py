@@ -1,36 +1,26 @@
-# SID-Net Example: Decompose information and construct a microbial network
+# examples/demo.py
 
 import numpy as np
 import pandas as pd
-from sidnet import sid_decompose, build_sid_network
+from sidnet import sid_decompose, sid_to_network_df, build_sid_network
 
-# Generate a simple synthetic microbial dataset (3 variables, 1000 time points)
-np.random.seed(0)
-X = np.random.rand(3, 1000)
+# Generate synthetic data: 5 species, 1000 samples
+np.random.seed(42)
+species_names = [f"Species_{i}" for i in range(5)]
+data = np.random.rand(5, 1000)
 
-# Use the first variable as the target, and the rest as predictors, then perform SID decomposition
-Y = np.vstack([X[0], X[1], X[2]])  # target + inputs
-I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2)
+# Choose a target variable
+target_index = 0
+Y = np.vstack([data[target_index], data])
 
-# Format output as a DataFrame
-data = []
-for k in I_S:
-    if len(k) == 2:
-        data.append({
-            "source_otu": f"OTU{k[0]}",
-            "target_otu": f"OTU{k[1]}",
-            "synergy": I_S[k],
-            "redundant": (I_R.get((k[0],), 0) + I_R.get((k[1],), 0)) / 2
-        })
-df = pd.DataFrame(data)
+# Set output basename
+basename = "demo_synthetic"
 
-# Build the microbial network
-build_sid_network(df, output_dir="./network_output")
+# Run SID decomposition
+I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2, species_names=species_names, basename=basename)
 
-# Display the edges (lines.csv)
-print("\nEdges (lines.csv):")
-print(pd.read_csv("./network_output/lines.csv"))
+# Convert to network format and save
+df = sid_to_network_df(I_R, I_S, species_names=species_names, basename=basename)
 
-# Display the nodes (points.csv)
-print("\nNodes (points.csv):")
-print(pd.read_csv("./network_output/points.csv"))
+# Build and save network files
+build_sid_network(df, output_dir="./sid_output", env_name="demo_synthetic")
