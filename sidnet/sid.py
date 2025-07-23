@@ -12,8 +12,9 @@ import itertools
 from itertools import combinations as icmb
 from itertools import chain as ichain
 from typing import Tuple, Dict
-from . import sid_tools as sid
 import warnings
+import pandas as pd  # Newly added for DataFrame export
+from . import sid_tools as sid
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -96,3 +97,31 @@ def sid_decompose(Y: np.ndarray, nbins, max_combs):
                 I_S[ll] += info
 
     return I_R, I_S, MI
+
+
+def sid_to_network_df(I_R: Dict, I_S: Dict) -> pd.DataFrame:
+    """
+    Convert SID decomposition results into a DataFrame suitable for SID network construction.
+
+    Parameters:
+    - I_R: dict of redundant + unique information
+    - I_S: dict of synergistic information
+
+    Returns:
+    - pd.DataFrame with columns: source_otu, target_otu, synergy, redundant
+    """
+    records = []
+    for combo in I_S:
+        if len(combo) == 2:
+            source, target = combo
+            synergy = I_S.get(combo, 0.0)
+            red_source = I_R.get((source,), 0.0)
+            red_target = I_R.get((target,), 0.0)
+            redundant = (red_source + red_target) / 2
+            records.append({
+                "source_otu": f"OTU_{source}",
+                "target_otu": f"OTU_{target}",
+                "synergy": synergy,
+                "redundant": redundant
+            })
+    return pd.DataFrame.from_records(records)
