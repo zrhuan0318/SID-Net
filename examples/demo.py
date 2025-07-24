@@ -15,6 +15,7 @@ Y = np.vstack([data[target_index], data])
 
 # Simulate input_file for automatic basename detection
 input_file = "demo_synthetic.tsv"
+pd.DataFrame(data, index=species_names).to_csv(input_file, sep="\t")
 
 # Run SID decomposition with automatic file output
 I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2,
@@ -26,3 +27,9 @@ df = sid_to_network_df(I_R, I_S, species_names=species_names, basename="demo_syn
 
 # Build and save network files
 build_sid_network(df, output_dir="./sid_output", env_name="demo_synthetic")
+
+# Optional: extract Unique contributions
+sid_result_df = pd.read_csv("demo_synthetic_sid_results.tsv", sep="\t")
+unique_df = sid_result_df[sid_result_df["Type"] == "Unique"]
+print("Unique contributions:")
+print(unique_df)
