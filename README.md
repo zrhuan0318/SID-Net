@@ -49,7 +49,6 @@ build_sid_network(df)
 > If `input_file` is provided, SID-Net will automatically derive a `basename` for file outputs:
 >
 > - `demo_synthetic_sid_results.tsv`
-> - `demo_synthetic_unique_contributions.tsv`
 > - `demo_synthetic_df.tsv`
 
 ## Folder Structure
