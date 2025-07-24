@@ -1,51 +1,35 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "39bd5e33",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# examples/demo.py\n",
-    "\n",
-    "import numpy as np\n",
-    "import pandas as pd\n",
-    "from sidnet import sid_decompose, sid_to_network_df, build_sid_network\n",
-    "\n",
-    "# Generate synthetic data: 5 species, 1000 samples\n",
-    "np.random.seed(42)\n",
-    "species_names = [f\"Species_{i}\" for i in range(5)]\n",
-    "data = np.random.rand(5, 1000)\n",
-    "\n",
-    "# Choose a target variable\n",
-    "target_index = 0\n",
-    "Y = np.vstack([data[target_index], data])\n",
-    "\n",
-    "# Simulate input_file for automatic basename detection\n",
-    "input_file = \"demo_synthetic.tsv\"\n",
-    "pd.DataFrame(data, index=species_names).to_csv(input_file, sep=\"\\t\")\n",
-    "\n",
-    "# Run SID decomposition with automatic file output\n",
-    "I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2,\n",
-    "                             species_names=species_names,\n",
-    "                             input_file=input_file)\n",
-    "\n",
-    "# Convert to network format and save\n",
-    "df = sid_to_network_df(I_R, I_S, species_names=species_names, basename=\"demo_synthetic\")\n",
-    "\n",
-    "# Build and save network files\n",
-    "build_sid_network(df, output_dir=\"./sid_output\", env_name=\"demo_synthetic\")\n",
-    "\n",
-    "# Optional: extract Unique contributions\n",
-    "sid_result_df = pd.read_csv(\"demo_synthetic_sid_results.tsv\", sep=\"\\t\")\n",
-    "unique_df = sid_result_df[sid_result_df[\"Type\"] == \"Unique\"]\n",
-    "print(\"Unique contributions:\")\n",
-    "print(unique_df)\n"
-   ]
-  }
- ],
- "metadata": {},
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# examples/demo.py
+
+import numpy as np
+import pandas as pd
+from sidnet import sid_decompose, sid_to_network_df, build_sid_network
+
+# Generate synthetic data: 5 species, 1000 samples
+np.random.seed(42)
+species_names = [f"Species_{i}" for i in range(5)]
+data = np.random.rand(5, 1000)
+
+# Choose a target variable
+target_index = 0
+Y = np.vstack([data[target_index], data])
+
+# Simulate input_file for automatic basename detection
+input_file = "demo_synthetic.tsv"
+pd.DataFrame(data, index=species_names).to_csv(input_file, sep="\t")
+
+# Run SID decomposition with automatic file output
+I_R, I_S, MI = sid_decompose(Y, nbins=5, max_combs=2,
+                             species_names=species_names,
+                             input_file=input_file)
+
+# Convert to network format and save
+df = sid_to_network_df(I_R, I_S, species_names=species_names, basename="demo_synthetic")
+
+# Build and save network files
+build_sid_network(df, output_dir="./sid_output", env_name="demo_synthetic")
+
+# Optional: extract Unique contributions
+sid_result_df = pd.read_csv("demo_synthetic_sid_results.tsv", sep="\t")
+unique_df = sid_result_df[sid_result_df["Type"] == "Unique"]
+print("Unique contributions:")
+print(unique_df)
