@@ -48,7 +48,7 @@ df = sid_to_network_df(I_R, I_S, species_names=species_names, basename="demo_syn
 build_sid_network(df)
 ```
 
-> If `input_file` is provided, SID-Net will automatically derive a `basename` for file outputs:
+> If `input_file` is specified, SID-Net uses it to derive a base name for generated outputs, such as:
 >
 > - `demo_synthetic_sid_results.tsv`
 > - `demo_synthetic_df.tsv`
