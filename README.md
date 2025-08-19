@@ -7,6 +7,8 @@
 ### Option 1: Install via pip
 
 ```bash
+git clone https://github.com/zrhuan0318/SID-Net.git
+cd SID-Net
 pip install ./
 ```
 
@@ -59,6 +61,7 @@ SID-Net/
     ├── sid.py           # SID decomposition logic
     ├── sid_tools.py     # Info theory utilities
     ├── sid_net.py       # Network builder
+    ├── sid_all_targets.py      # SID batch analysis across all OTUs
     └── __init__.py
 ├── examples/
 │   ├── demo.py
