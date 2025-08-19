@@ -64,8 +64,10 @@ SID-Net/
     ├── sid_all_targets.py      # SID batch analysis across all OTUs
     └── __init__.py
 ├── examples/
-│   ├── demo.py
-│   └── demo.ipynb
+│   ├── demo.py                # Single-target SID example
+│   ├── demo.ipynb             # Notebook version of single-target SID
+│   ├── demo_all_targets.py    # Batch all-target SID example
+│   └── demo_all_targets.ipynb # Notebook version of batch SID
 ├── environment.yml
 ├── setup.py
 └── README.md
