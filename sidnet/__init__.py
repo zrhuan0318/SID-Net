@@ -26,3 +26,4 @@ __version__ = "0.1"
 
 from .sid import sid_decompose, sid_to_network_df
 from .sid_net import build_sid_network
+from .sid_all_targets import run_sid_all_targets
