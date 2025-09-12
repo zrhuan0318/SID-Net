@@ -1,9 +1,18 @@
 import numpy as np
 import pandas as pd
+import os
 from .sid_tools import compute_all_mi_combinations
 from itertools import combinations
 
-def sid_decompose(Y, nbins=5, max_combs=2, species_names=None, input_file=None):
+def sid_decompose(
+    Y,
+    nbins=5,
+    max_combs=2,
+    species_names=None,
+    input_file=None,
+    output_basename=None,
+    output_dir="."
+):
     """
     Perform SID decomposition on input data.
 
@@ -19,8 +28,13 @@ def sid_decompose(Y, nbins=5, max_combs=2, species_names=None, input_file=None):
     species_names : list
         Names of variables. If provided, the first element is assumed to be the target,
         and the remaining correspond to predictors.
-    input_file : str
-        Optional, used to generate output file name.
+    input_file : str or None
+        Optional, used to derive output basename if output_basename is not provided.
+        (Kept for backward compatibility.)
+    output_basename : str or None
+        If provided, will be used as the basename of the output file(s) (preferred).
+    output_dir : str
+        Directory to store output files.
 
     Returns
     -------
@@ -36,9 +50,10 @@ def sid_decompose(Y, nbins=5, max_combs=2, species_names=None, input_file=None):
         species_names = [f"X{i+1}" for i in range(Y.shape[0] - 1)]
         species_names = ["Target"] + species_names
 
-    # Determine basename for file output
-    if input_file:
-        import os
+    # Decide basename priority: output_basename > input_file > default
+    if output_basename is not None and len(str(output_basename)) > 0:
+        basename = os.path.splitext(os.path.basename(str(output_basename)))[0]
+    elif input_file:
         basename = os.path.splitext(os.path.basename(input_file))[0]
     else:
         basename = "sid_output"
@@ -46,30 +61,33 @@ def sid_decompose(Y, nbins=5, max_combs=2, species_names=None, input_file=None):
     # Run computation
     I_U, I_R, I_S, MI = compute_all_mi_combinations(Y, nbins=nbins, max_combs=max_combs)
 
-    # Write full SID results to a single TSV
+    # Prepare rows for a single TSV (Unique / Redundant / Synergistic)
     sid_rows = []
 
     # ---- Unique contributions (skip target!) ----
     for i, val in enumerate(I_U):
-        sid_rows.append((species_names[i+1], val, "Unique"))
+        sid_rows.append((species_names[i+1], float(val), "Unique"))
 
     # ---- Redundant contributions (excluding singletons) ----
     for k, val in I_R.items():
         if len(k) == 1:
             continue  # skip singletons to avoid duplication
         names = tuple(species_names[i] for i in k)
-        sid_rows.append((names, val, "Redundant"))
+        sid_rows.append((names, float(val), "Redundant"))
 
     # ---- Synergistic contributions ----
     for k, val in I_S.items():
         names = tuple(species_names[i] for i in k)
-        sid_rows.append((names, val, "Synergistic"))
+        sid_rows.append((names, float(val), "Synergistic"))
 
     # Write to file
+    os.makedirs(output_dir, exist_ok=True)
+    out_path = os.path.join(output_dir, f"{basename}_sid_results.tsv")
     df = pd.DataFrame(sid_rows, columns=["Feature", "Contribution", "Type"])
-    df.to_csv(f"{basename}_sid_results.tsv", sep="\t", index=False)
+    df.to_csv(out_path, sep="\t", index=False)
 
     return I_R, I_S, MI
+
 
 def sid_to_network_df(I_R, I_S, species_names=None, basename=None):
     """
