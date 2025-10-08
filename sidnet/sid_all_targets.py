@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-from sid import sid_decompose, sid_to_network_df
+from sidnet import sid_decompose, sid_to_network_df
 
 def run_sid_all_targets(
     Y: np.ndarray,
